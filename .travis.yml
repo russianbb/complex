@@ -1,0 +1,22 @@
+sudo: required
+
+services:
+  - docker
+
+before_install:
+  - docker build -t russianbb/client-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true russianbb/client-test npm test
+
+after_success:
+  - docker build -t russianbb/complex-client ./client
+  - docker build -t russianbb/complex-nginx ./nginx
+  - docker build -t russianbb/complex-server ./server
+  - docker build -t russianbb/complex-worker ./worker
+  # Login to docker hub
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push russianbb/complex-client
+  - docker push russianbb/complex-nginx
+  - docker push russianbb/complex-server
+  - docker push russianbb/complex-worker
